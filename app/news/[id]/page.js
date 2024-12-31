@@ -1,5 +1,9 @@
 function NewsType({ params }) {
-  return <div>NewsType :{params.id} </div>;
+  return (
+    <>
+      <h1>News Page {params.id}</h1>
+    </>
+  );
 }
 
 export default NewsType;
