@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import { DUMMY_NEWS } from "@/dummy-new";
+import { DUMMY_NEWS } from "@/routing-proj/dummy-new";
 import Link from "next/link";
 
 export default function NewsType({ params }) {

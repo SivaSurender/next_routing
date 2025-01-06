@@ -1,4 +1,4 @@
-import { DUMMY_NEWS } from "@/dummy-new";
+import { DUMMY_NEWS } from "@/routing-proj/dummy-new";
 
 export function getAllNews() {
   return DUMMY_NEWS;

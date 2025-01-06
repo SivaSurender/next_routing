@@ -1,5 +1,5 @@
 "use client";
-import { DUMMY_NEWS } from "@/dummy-new";
+import { DUMMY_NEWS } from "@/routing-proj/dummy-new";
 import { useRouter } from "next/navigation";
 
 export default function InteceptedImageView({ params }) {
