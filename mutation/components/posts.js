@@ -1,11 +1,13 @@
 import { formatDate } from "@/lib/format";
 import LikeButton from "./like-icon";
 import { updatePostLikeStatus } from "@/lib/posts";
+import { revalidatePath } from "next/cache";
 
 function Post({ post }) {
   async function togglePostLikeStatus(postId, formData) {
     "use server";
-    updatePostLikeStatus(postId, 2);
+    await updatePostLikeStatus(postId, 2);
+    revalidatePath("/", "layout");
   }
   return (
     <article className="post">
