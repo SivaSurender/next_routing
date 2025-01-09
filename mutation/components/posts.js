@@ -1,14 +1,11 @@
+"use client";
 import { formatDate } from "@/lib/format";
 import LikeButton from "./like-icon";
 import { updatePostLikeStatus } from "@/lib/posts";
 import { revalidatePath } from "next/cache";
+import { useOptimistic } from "react";
 
-function Post({ post }) {
-  async function togglePostLikeStatus(postId, formData) {
-    "use server";
-    await updatePostLikeStatus(postId, 2);
-    revalidatePath("/", "layout");
-  }
+function Post({ post, action }) {
   return (
     <article className="post">
       <div className="post-image">
@@ -27,7 +24,7 @@ function Post({ post }) {
           </div>
           <div>
             <form
-              action={togglePostLikeStatus.bind(null, post.id)}
+              action={action.bind(null, post.id)}
               className={post.isLiked ? "liked" : ""}
             >
               <LikeButton />
@@ -41,15 +38,41 @@ function Post({ post }) {
 }
 
 export default function Posts({ posts }) {
-  if (!posts || posts.length === 0) {
+  async function togglePostLikeStatus(postId, formData) {
+    // "use server";
+    await updatePostLikeStatus(postId, 2);
+    revalidatePath("/", "layout");
+  }
+  const [optimisticPosts, updateOptimisticPosts] = useOptimistic(
+    posts,
+    (prevPost, newPost) => {
+      const newPostIndex = prevPost.findIndex((post) => post.id === newPost.id);
+      if (newPostIndex === -1) {
+        return prevPost.concat(newPost);
+      }
+
+      const updatedPost = { ...prevPost[newPostIndex] };
+
+      updatedPost.likes = updatedPost.likes + (updatedPost.isLiked ? -1 : 1);
+      updatedPost.isLiked = !updatedPost.isLiked;
+      const newPosts = [...prevPost];
+      newPosts[newPostIndex] = updatedPost;
+      return newPosts;
+    }
+  );
+  if (!optimisticPosts || optimisticPosts.length === 0) {
     return <p>There are no posts yet. Maybe start sharing some?</p>;
+  }
+  async function updatePost(postId) {
+    updateOptimisticPosts(postId);
+    await togglePostLikeStatus(postId);
   }
 
   return (
     <ul className="posts">
-      {posts.map((post) => (
+      {optimisticPosts.map((post) => (
         <li key={post.id}>
-          <Post post={post} />
+          <Post post={post} action={updateOptimisticPosts} />
         </li>
       ))}
     </ul>
