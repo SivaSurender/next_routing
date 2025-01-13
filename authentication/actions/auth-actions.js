@@ -1,8 +1,8 @@
 "use server";
 
 import { createAuthSession } from "@/lib/auth";
-import { hashUserPassword } from "@/lib/hash";
-import { createUser } from "@/lib/users";
+import { hashUserPassword, verifyPassword } from "@/lib/hash";
+import { createUser, getUserByEmail } from "@/lib/users";
 import { redirect } from "next/navigation";
 
 export async function signup(prevFormData, formData) {
@@ -36,4 +36,41 @@ export async function signup(prevFormData, formData) {
     }
     throw err;
   }
+}
+
+export async function login(prevState, formData) {
+  const email = formData.get("email");
+  const password = formData.get("password");
+
+  // dont need to validate as we will check for the users from existing records eventually
+
+  const existingUser = getUserByEmail(email);
+  if (!existingUser) {
+    return {
+      error: {
+        email: "Could not authenticate the user, please check your credentials",
+      },
+    };
+  }
+
+  // if email correct , and incorrect pwd
+  const isValidPwd = verifyPassword(existingUser.password, password);
+
+  if (!isValidPwd) {
+    return {
+      error: {
+        email: "Could not authenticate the user, please check your credentials",
+      },
+    };
+  }
+
+  await createAuthSession(existingUser.id);
+  redirect("/training");
+}
+
+export async function auth(mode, prevState, formData) {
+  if (mode === "login") {
+    return login(prevState, formData);
+  }
+  return signup(prevState, formData);
 }
